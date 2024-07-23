@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: spring-boot-app
-        image: rakeshf5/jenkins-argocd-cicd-docker:replaceImageTag
+        image: rakeshf5/maven-rakesh-docker-agent:replaceImageTag
         ports:
         - containerPort: 8080
