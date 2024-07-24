@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: spring-boot-app
-          image: rakeshf5/ultimate-cicd:23
+          image: rakeshf5/ultimate-cicd:31
           resources:
             limits:
               memory: "256Mi"
