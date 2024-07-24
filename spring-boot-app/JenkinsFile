@@ -14,8 +14,8 @@ pipeline {
     }
     stage('Build and Test') {
       steps {
-        sh 'docker rm -f my-container || true'
-        sh 'docker run -d --name my-container rakeshf5/maven-rakesh-docker-agent:v1'
+        sh 'docker rm -f docker-agent-container || true'
+        sh 'docker run -d --name docker-agent-container rakeshf5/maven-rakesh-docker-agent:v1'
         sh 'docker top my-container -eo pid,comm'
         sh 'ls -la'
         // build the project and create a JAR file
