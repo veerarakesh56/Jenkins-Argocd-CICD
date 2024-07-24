@@ -1,72 +1,72 @@
 pipeline {
-  agent {
-    docker {
-      image 'rakeshf5/maven-rakesh-docker-agent:v1'
-      args '-v /var/run/docker.sock:/var/run/docker.sock'
-    }
-  }
-  stages {
-    stage('Checkout') {
-      steps {
-        sh 'echo passed'
-        git branch: 'main', url: 'https://github.com/veerarakesh56/Jenkins-Argocd-CICD.git'
-      }
-    }
-    stage('Build and Test') {
-      steps {
-        sh 'docker rm -f docker-agent-container || true'
-        sh 'docker run -d --name docker-agent-container rakeshf5/maven-rakesh-docker-agent:v1'
-        sh 'docker top my-container -eo pid,comm'
-        sh 'ls -la'
-        // build the project and create a JAR file
-        sh 'cd spring-boot-app && mvn clean package'
-        sh 'docker container prune -f'
-      }
-    }
-    stage('Static Code Analysis') {
-      environment {
-        SONAR_URL = "http://13.201.20.96:9000"
-      }
-      steps {
-        withCredentials([string(credentialsId: 'sonar', variable: 'SONAR_AUTH_TOKEN')]) {
-          sh 'cd spring-boot-app && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
+    agent {
+        docker {
+            image 'rakeshf5/maven-rakesh-docker-agent:v1'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
-      }
     }
-    stage('Build and Push Docker Image') {
-      environment {
-        DOCKER_IMAGE = "rakeshf5/jenkins-cicd:${BUILD_NUMBER}"
-        DOCKERFILE_LOCATION = "spring-boot-app/Dockerfile"
-        REGISTRY_CREDENTIALS = credentials('docker-cred')
-      }
-      steps {
-        script {
-            sh "cd ${DOCKERFILE_LOCATION} && docker build -t ${DOCKER_IMAGE} ."
-            def dockerImage = docker.image
-            docker.withRegistry('https://index.docker.io/v1/', "docker-cred") {
-                dockerImage.push()
+    stages {
+        stage('Checkout') {
+            steps {
+                sh 'echo passed'
+                git branch: 'main', url: 'https://github.com/veerarakesh56/Jenkins-Argocd-CICD.git'
             }
         }
-      }
-    }
-    stage('Update Deployment File') {
-        environment {
-            GIT_REPO_NAME = "Jenkins-Argocd-CICD"
-            GIT_USER_NAME = "veerarakesh56"
+        stage('Build and Test') {
+            steps {
+                sh 'docker rm -f docker-agent-container || true'
+                sh 'docker run -d --name docker-agent-container rakeshf5/maven-rakesh-docker-agent:v1'
+                sh 'docker top my-container -eo pid,comm'
+                sh 'ls -la'
+                // build the project and create a JAR file
+                sh 'cd spring-boot-app && mvn clean package'
+                sh 'docker container prune -f'
+            }
         }
-        steps {
-            withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-                sh '''
-                    git config user.email "veerarakesh56@gmail.com"
-                    git config user.name "veerarakesh56"
-                    BUILD_NUMBER=${BUILD_NUMBER}
-                    sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" spring-boot-app-manifests/deployment.yml
-                    git add spring-boot-app-manifests/deployment.yml
-                    git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-                    git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
-                '''
+        stage('Static Code Analysis') {
+            environment {
+                SONAR_URL = "http://13.201.20.96:9000"
+            }
+            steps {
+                withCredentials([string(credentialsId: 'sonar', variable: 'SONAR_AUTH_TOKEN')]) {
+                    sh 'cd spring-boot-app && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
+                }
+            }
+        }
+        stage('Build and Push Docker Image') {
+            environment {
+                DOCKER_IMAGE = "rakeshf5/jenkins-cicd:${BUILD_NUMBER}"
+                DOCKERFILE_LOCATION = "spring-boot-app/Dockerfile"
+                REGISTRY_CREDENTIALS = credentials('docker-cred')
+            }
+            steps {
+                script {
+                    sh "cd ${DOCKERFILE_LOCATION} && docker build -t ${DOCKER_IMAGE} ."
+                    def dockerImage = docker.image
+                    docker.withRegistry('https://index.docker.io/v1/', "docker-cred") {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+        stage('Update Deployment File') {
+            environment {
+                GIT_REPO_NAME = "Jenkins-Argocd-CICD"
+                GIT_USER_NAME = "veerarakesh56"
+            }
+            steps {
+                withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                    sh '''
+                        git config user.email "veerarakesh56@gmail.com"
+                        git config user.name "veerarakesh56"
+                        BUILD_NUMBER=${BUILD_NUMBER}
+                        sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" spring-boot-app-manifests/deployment.yml
+                        git add spring-boot-app-manifests/deployment.yml
+                        git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+                        git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+                    '''
+                }
             }
         }
     }
-  }
 }
