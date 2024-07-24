@@ -16,7 +16,7 @@ pipeline {
             steps {
                 sh 'docker container prune -f'
                 sh 'docker run -d --name docker-agent-container rakeshf5/maven-rakesh-docker-agent:v1'
-                sh 'docker wait docker-agent-container'
+                sh 'sleep 10' // wait for 10 seconds
                 sh 'docker exec -it docker-agent-container bash -c "cd spring-boot-app && mvn clean package"'
             }
         }
