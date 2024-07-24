@@ -15,7 +15,7 @@ pipeline {
         stage('Build and Test') {
             steps {
                 sh 'docker rm -f docker-agent-container || true'
-                sh 'docker run -d --name docker-agent-container rakeshf5/maven-rakesh-docker-agent:v1'
+                sh 'docker run -t --name docker-agent-container rakeshf5/maven-rakesh-docker-agent:v1'
                 sh 'docker exec -it docker-agent-container bash -c "cd spring-boot-app && mvn clean package"'
                 sh 'docker container prune -f'
             }
