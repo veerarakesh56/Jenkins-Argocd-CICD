@@ -1,9 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-boot-app
-  labels:
-    app: spring-boot-app
+  name: spring-boot-app-deployment
 spec:
   replicas: 2
   selector:
@@ -15,7 +13,11 @@ spec:
         app: spring-boot-app
     spec:
       containers:
-      - name: spring-boot-app
-        image: rakeshf5/ultimate-cicd:23
-        ports:
-        - containerPort: 8080
+        - name: spring-boot-app
+          image: rakeshf5/ultimate-cicd:23
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8080
