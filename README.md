@@ -1,4 +1,4 @@
-# Jenkins-Argocd-CICD
+# Jenkins-Argocd-EKS-CICD
 
 ![cicd-jenkins-argocd](https://github.com/user-attachments/assets/83b14b03-6488-4f89-a556-5de37943e3ac)
 
